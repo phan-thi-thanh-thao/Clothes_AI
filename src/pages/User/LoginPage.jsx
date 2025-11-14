@@ -1,17 +1,16 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,96 +18,124 @@ const LoginPage = () => {
 
     try {
       const result = await login(formData);
+
       if (result.success) {
-        toast.success('Đăng nhập thành công!');
-        if (result.user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/');
-        }
+        toast.success("Đăng nhập thành công!");
+        navigate(result.user.role === "admin" ? "/admin" : "/");
       } else {
-        toast.error('Email hoặc mật khẩu không đúng!');
+        toast.error("Email hoặc mật khẩu không đúng!");
       }
     } catch (error) {
-      toast.error('Có lỗi xảy ra!');
+      toast.error("Có lỗi xảy ra!");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <Link to="/" className="flex justify-center">
-            <h1 className="text-3xl font-bold text-blue-600">ClothesAI</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-blue-50/40 px-4 py-12">
+      <div className="max-w-md w-full bg-white shadow-xl rounded-3xl p-10 border border-gray-100">
+        
+        {/* Logo */}
+        <div className="text-center">
+          <Link to="/">
+            <h1 className="text-4xl font-extrabold text-blue-600 tracking-tight">
+              ClothesAI
+            </h1>
           </Link>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-4 text-2xl font-bold text-gray-900">
             Đăng nhập tài khoản
           </h2>
+          <p className="text-gray-500 text-sm mt-1">
+            Chào mừng bạn quay trở lại 👋
+          </p>
         </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Nhập email của bạn"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Mật khẩu
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Nhập mật khẩu"
-              />
-            </div>
-          </div>
 
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+
+          {/* Email */}
           <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              name="email"
+              type="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Nhập email của bạn"
+              className="input-field"
+            />
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mật khẩu
+            </label>
+            <input
+              name="password"
+              type="password"
+              required
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Nhập mật khẩu"
+              className="input-field"
+            />
+          </div>
+
+          {/* Login Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-lg shadow-md hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+          </button>
+
+          {/* Register Link */}
+          <div className="text-center text-sm text-gray-600">
+            Chưa có tài khoản?{" "}
+            <Link
+              to="/register"
+              className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
-            </button>
+              Đăng ký ngay
+            </Link>
           </div>
 
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Chưa có tài khoản?{' '}
-              <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
-                Đăng ký ngay
-              </Link>
+          {/* Demo Accounts */}
+          <div className="mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100">
+            <p className="text-sm font-semibold text-blue-700 mb-2">
+              🔑 Tài khoản demo:
             </p>
-          </div>
-
-          <div className="mt-4 p-4 bg-blue-50 rounded-md">
-            <p className="text-sm text-blue-800 font-medium">Tài khoản demo:</p>
-            <p className="text-sm text-blue-700">Admin: admin@admin.com / admin</p>
-            <p className="text-sm text-blue-700">User: user@user.com / user</p>
+            <p className="text-sm text-blue-600">Admin: admin@admin.com / admin</p>
+            <p className="text-sm text-blue-600">User: user@user.com / user</p>
           </div>
         </form>
       </div>
+
+      {/* Custom Styles */}
+      <style>
+        {`
+          .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            transition: 0.25s;
+          }
+          .input-field:focus {
+            background: white;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            outline: none;
+          }
+        `}
+      </style>
     </div>
   );
 };

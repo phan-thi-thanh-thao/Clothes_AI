@@ -1,50 +1,89 @@
 const Footer = () => {
   return (
-    <footer className="bg-gray-800 text-white">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-blue-900 text-gray-200 pt-14 pb-8 mt-12 rounded-t-3xl">
+      <div className="container mx-auto px-4">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
+
+          {/* Brand */}
           <div>
-            <h3 className="text-xl font-bold mb-4">ClothesAI</h3>
-            <p className="text-gray-300 mb-4">
-              Hệ thống mua sắm quần áo trực tuyến với công nghệ AI tìm kiếm theo hình ảnh.
+            <h3 className="text-3xl font-extrabold text-white mb-4 tracking-wide">
+              ClothesAI
+            </h3>
+            <p className="text-gray-300 leading-relaxed">
+              Nền tảng mua sắm thời trang hiện đại, ứng dụng AI để tìm kiếm sản phẩm qua hình ảnh nhanh và chính xác.
             </p>
           </div>
 
+          {/* Quick Links */}
           <div>
-            <h4 className="font-semibold mb-4">Liên kết nhanh</h4>
-            <ul className="space-y-2 text-gray-300">
-              <li><a href="/" className="hover:text-white">Trang chủ</a></li>
-              <li><a href="/products" className="hover:text-white">Sản phẩm</a></li>
-              <li><a href="/search" className="hover:text-white">Tìm kiếm AI</a></li>
+            <h4 className="footer-title">Liên kết nhanh</h4>
+            <ul className="footer-list">
+              <li><a href="/" className="footer-link">Trang chủ</a></li>
+              <li><a href="/products" className="footer-link">Sản phẩm</a></li>
+              <li><a href="/search" className="footer-link">Tìm kiếm AI</a></li>
             </ul>
           </div>
 
+          {/* Policies */}
           <div>
-            <h4 className="font-semibold mb-4">Chính sách</h4>
-            <ul className="space-y-2 text-gray-300">
-              <li><a href="#" className="hover:text-white">Chính sách bảo mật</a></li>
-              <li><a href="#" className="hover:text-white">Điều khoản sử dụng</a></li>
-              <li><a href="#" className="hover:text-white">Chính sách đổi trả</a></li>
+            <h4 className="footer-title">Chính sách</h4>
+            <ul className="footer-list">
+              <li><a href="#" className="footer-link">Bảo mật thông tin</a></li>
+              <li><a href="#" className="footer-link">Điều khoản sử dụng</a></li>
+              <li><a href="#" className="footer-link">Chính sách đổi trả</a></li>
             </ul>
           </div>
 
+          {/* Contact */}
           <div>
-            <h4 className="font-semibold mb-4">Liên hệ</h4>
-            <div className="space-y-2 text-gray-300">
-              <p>Email: info@clothesai.com</p>
+            <h4 className="footer-title">Liên hệ</h4>
+            <div className="space-y-3 text-gray-300">
+              <p>Email: support@clothesai.com</p>
               <p>Hotline: 1900-1234</p>
-              <div className="flex space-x-4 mt-4">
-                <a href="#" className="hover:text-white">Facebook</a>
-                <a href="#" className="hover:text-white">Instagram</a>
+
+              <div className="flex items-center space-x-4 mt-4">
+                <a href="#" className="footer-icon">📘</a>
+                <a href="#" className="footer-icon">📸</a>
+                <a href="#" className="footer-icon">🐦</a>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
-          <p>&copy; 2024 ClothesAI. All rights reserved.</p>
+        <div className="border-t border-blue-700 mt-12 pt-6 text-center text-gray-300 text-sm">
+          © 2024 ClothesAI — Mọi quyền được bảo lưu.
         </div>
       </div>
+
+      <style>
+        {`
+          .footer-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 1rem;
+          }
+          .footer-link {
+            color: #d1d5db;
+            transition: 0.25s;
+          }
+          .footer-link:hover {
+            color: white;
+          }
+          .footer-list li {
+            margin-bottom: 0.6rem;
+          }
+          .footer-icon {
+            font-size: 1.6rem;
+            transition: 0.25s;
+          }
+          .footer-icon:hover {
+            transform: scale(1.15);
+            color: #fff;
+          }
+        `}
+      </style>
     </footer>
   );
 };

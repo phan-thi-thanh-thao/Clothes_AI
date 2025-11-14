@@ -20,81 +20,94 @@ const Dashboard = () => {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Tổng quan hệ thống</p>
+      {/* Title */}
+      <div className="mb-10">
+        <h1 className="text-4xl font-extrabold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600 mt-1">Tổng quan hệ thống</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {stats.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className={`p-2 bg-${stat.color}-100 rounded-lg`}>
-                <span className="text-2xl">{stat.icon}</span>
+          <div
+            key={index}
+            className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-xl transition-all"
+          >
+            <div className="flex items-center gap-4">
+              <div
+                className={`p-4 rounded-xl bg-${stat.color}-100 text-${stat.color}-600 shadow-inner`}
+              >
+                <span className="text-3xl">{stat.icon}</span>
               </div>
-              <div className="ml-4">
+              <div>
                 <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
+                <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Charts and Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Recent Orders & Top Products */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
         {/* Recent Orders */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-white rounded-2xl shadow-md border border-gray-100">
           <div className="p-6 border-b">
-            <h3 className="text-lg font-semibold">Đơn hàng gần đây</h3>
+            <h3 className="text-xl font-semibold">Đơn hàng gần đây</h3>
           </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">#{order.id}</p>
-                    <p className="text-sm text-gray-600">{order.customer}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium">{order.amount}</p>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      order.status === 'Hoàn thành' ? 'bg-green-100 text-green-800' :
-                      order.status === 'Đang giao' ? 'bg-blue-100 text-blue-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {order.status}
-                    </span>
-                  </div>
+
+          <div className="p-6 space-y-5">
+            {recentOrders.map((order) => (
+              <div key={order.id} className="flex justify-between items-center">
+                <div>
+                  <p className="font-semibold text-gray-900">#{order.id}</p>
+                  <p className="text-sm text-gray-600">{order.customer}</p>
                 </div>
-              ))}
-            </div>
+
+                <div className="text-right">
+                  <p className="font-semibold text-gray-900">{order.amount}</p>
+
+                  <span
+                    className={`mt-1 inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                      order.status === "Hoàn thành"
+                        ? "bg-green-100 text-green-800"
+                        : order.status === "Đang giao"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {order.status}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Top Products */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-white rounded-2xl shadow-md border border-gray-100">
           <div className="p-6 border-b">
-            <h3 className="text-lg font-semibold">Sản phẩm bán chạy</h3>
+            <h3 className="text-xl font-semibold">Sản phẩm bán chạy</h3>
           </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {topProducts.map((product, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gray-200 rounded object-cover mr-3"></div>
-                    <div>
-                      <p className="font-medium">{product.name}</p>
-                      <p className="text-sm text-gray-600">Đã bán: {product.sold}</p>
-                    </div>
+
+          <div className="p-6 space-y-5">
+            {topProducts.map((product, index) => (
+              <div key={index} className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gray-200 rounded-xl shadow-inner" />
+                  <div>
+                    <p className="font-semibold text-gray-900">{product.name}</p>
+                    <p className="text-sm text-gray-600">Đã bán: {product.sold}</p>
                   </div>
-                  <p className="font-medium">{product.revenue}</p>
                 </div>
-              ))}
-            </div>
+
+                <p className="font-semibold text-gray-900">{product.revenue}</p>
+              </div>
+            ))}
           </div>
         </div>
+
       </div>
     </div>
   );

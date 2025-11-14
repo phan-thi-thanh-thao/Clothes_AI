@@ -3,15 +3,25 @@ import { useParams } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { products } from "../../data/mockData";
 import toast from "react-hot-toast";
+import ProductCard from "../../components/ProductCard";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
+
   const product = products.find((p) => p.id === parseInt(id)) || products[0];
 
+  const [mainImage, setMainImage] = useState(product.image);
   const [selectedSize, setSelectedSize] = useState("M");
   const [selectedColor, setSelectedColor] = useState("Đen");
   const [quantity, setQuantity] = useState(1);
+
+  const discount =
+    product.originalPrice > product.price
+      ? Math.round(
+          ((product.originalPrice - product.price) / product.originalPrice) * 100
+        )
+      : 0;
 
   const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", {
@@ -20,45 +30,56 @@ const ProductDetailPage = () => {
     }).format(price);
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <div className="container mx-auto px-4 py-16">
 
-        {/* ==================== PRODUCT IMAGES ==================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+
+        {/* ==================== IMAGE GALLERY ==================== */}
         <div>
-          <div className="bg-white rounded-2xl shadow-md overflow-hidden mb-4">
+          {/* MAIN IMAGE */}
+          <div className="rounded-3xl overflow-hidden shadow-lg bg-white">
             <img
-              src={product.image}
+              src={mainImage}
               alt={product.name}
-              className="w-full h-96 object-cover hover:scale-105 transition duration-500"
+              className="w-full h-[480px] object-cover transition-transform duration-500 hover:scale-105"
             />
           </div>
 
-          <div className="grid grid-cols-4 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="bg-white rounded-xl shadow cursor-pointer hover:shadow-lg transition"
-              >
-                <img
-                  src={product.image}
-                  alt={`${product.name} ${i}`}
-                  className="w-full h-20 object-cover rounded-xl"
-                />
-              </div>
-            ))}
+          {/* THUMBNAILS */}
+          <div className="grid grid-cols-4 gap-4 mt-4">
+            {[product.image, product.image, product.image, product.image].map(
+              (img, i) => (
+                <div
+                  key={i}
+                  onClick={() => setMainImage(img)}
+                  className={`cursor-pointer rounded-xl overflow-hidden border-2 ${
+                    mainImage === img
+                      ? "border-blue-600 shadow-lg"
+                      : "border-transparent"
+                  }`}
+                >
+                  <img
+                    src={img}
+                    className="w-full h-24 object-cover hover:opacity-80 transition"
+                    alt="thumb"
+                  />
+                </div>
+              )
+            )}
           </div>
         </div>
 
         {/* ==================== PRODUCT INFO ==================== */}
-        <div>
-          {/* Title */}
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-3">
+        <div className="animate-fadeIn">
+
+          {/* TITLE */}
+          <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">
             {product.name}
           </h1>
-          <p className="text-gray-500 text-lg mb-4">{product.category}</p>
+          <p className="text-gray-500 text-lg mt-1">{product.category}</p>
 
-          {/* Rating */}
-          <div className="flex items-center mb-6">
+          {/* RATING */}
+          <div className="flex items-center mt-4 mb-6">
             {[...Array(5)].map((_, i) => (
               <svg
                 key={i}
@@ -78,19 +99,25 @@ const ProductDetailPage = () => {
             </span>
           </div>
 
-          {/* Price */}
-          <div className="mb-8">
-            <span className="text-4xl font-bold text-blue-600">
+          {/* PRICE */}
+          <div className="mb-10">
+            <span className="text-4xl font-extrabold text-blue-600">
               {formatPrice(product.price)}
             </span>
-            {product.originalPrice > product.price && (
-              <span className="text-xl text-gray-400 line-through ml-4">
-                {formatPrice(product.originalPrice)}
-              </span>
+
+            {discount > 0 && (
+              <>
+                <span className="text-xl text-gray-400 line-through ml-5">
+                  {formatPrice(product.originalPrice)}
+                </span>
+                <span className="ml-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                  -{discount}%
+                </span>
+              </>
             )}
           </div>
 
-          {/* Size Selection */}
+          {/* SIZE */}
           <div className="mb-8">
             <h3 className="text-lg font-semibold mb-3">Kích thước</h3>
             <div className="flex gap-3">
@@ -110,7 +137,7 @@ const ProductDetailPage = () => {
             </div>
           </div>
 
-          {/* Color Selection */}
+          {/* COLOR */}
           <div className="mb-8">
             <h3 className="text-lg font-semibold mb-3">Màu sắc</h3>
             <div className="flex gap-3">
@@ -130,38 +157,38 @@ const ProductDetailPage = () => {
             </div>
           </div>
 
-          {/* Quantity Selector */}
-          <div className="mb-8">
+          {/* QUANTITY */}
+          <div className="mb-10">
             <h3 className="text-lg font-semibold mb-3">Số lượng</h3>
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 text-xl font-bold rounded-full border border-gray-300 flex items-center justify-center bg-white hover:bg-gray-100"
+                className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-xl font-bold hover:bg-gray-100 bg-white"
               >
                 -
               </button>
 
-              <span className="text-xl font-semibold w-12 text-center">
+              <span className="text-xl font-bold w-12 text-center">
                 {quantity}
               </span>
 
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="w-10 h-10 text-xl font-bold rounded-full border border-gray-300 flex items-center justify-center bg-white hover:bg-gray-100"
+                className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-xl font-bold hover:bg-gray-100 bg-white"
               >
                 +
               </button>
             </div>
           </div>
 
-          {/* Add to Cart */}
-          <div className="flex gap-5 mb-10">
+          {/* ADD TO CART */}
+          <div className="flex gap-5 mb-16">
             <button
               onClick={() => {
                 addToCart(product, quantity, selectedSize, selectedColor);
                 toast.success("Đã thêm vào giỏ hàng!");
               }}
-              className="flex-1 py-4 bg-blue-600 text-white rounded-xl font-semibold text-lg hover:bg-blue-700 transition shadow"
+              className="flex-1 py-4 bg-blue-600 text-white rounded-xl font-semibold text-lg hover:bg-blue-700 transition shadow-lg"
             >
               Thêm vào giỏ hàng
             </button>
@@ -171,16 +198,42 @@ const ProductDetailPage = () => {
             </button>
           </div>
 
-          {/* Description */}
+          {/* DESCRIPTION */}
           <div>
-            <h3 className="text-xl font-bold mb-3">Mô tả sản phẩm</h3>
+            <h3 className="text-xl font-semibold mb-3">Mô tả sản phẩm</h3>
             <p className="text-gray-600 leading-relaxed">
-              Sản phẩm chất lượng cao, thiết kế hiện đại và phù hợp với xu hướng thời trang.
-              Chất liệu cao cấp, thoáng mát và bền đẹp. Phù hợp cho nhiều dịp khác nhau.
+              Sản phẩm chất lượng cao, thiết kế hiện đại, chất liệu thoáng mát và bền đẹp.
+              Phù hợp cho nhiều dịp khác nhau – đi học, đi chơi, đi làm.
             </p>
           </div>
         </div>
       </div>
+
+      {/* ==================== SIMILAR PRODUCTS ==================== */}
+      <div className="mt-20">
+        <h2 className="text-3xl font-bold text-gray-800 mb-10">
+          Sản phẩm tương tự
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {products.slice(0, 4).map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
+        </div>
+      </div>
+
+      {/* Fade Animation */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .animate-fadeIn {
+            animation: fadeIn .6s ease-out both;
+          }
+        `}
+      </style>
     </div>
   );
 };

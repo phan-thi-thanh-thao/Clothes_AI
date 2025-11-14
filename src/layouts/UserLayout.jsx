@@ -1,21 +1,26 @@
 import { Outlet } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import TopBanner from "../components/TopBanner"; // ⬅️ Thêm dòng này
 
 const UserLayout = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-white to-blue-50/20">
-      {/* Header */}
+      
+      {/* 🔵 TOP BANNER */}
+      <TopBanner />
+
+      {/* 🔵 HEADER */}
       <Header />
 
-      {/* Main Content Area */}
+      {/* MAIN CONTENT */}
       <main className="flex-1 pt-4 pb-10">
         <div className="container mx-auto px-4">
           <Outlet />
         </div>
       </main>
 
-      {/* Footer */}
+      {/* FOOTER */}
       <Footer />
     </div>
   );

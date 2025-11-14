@@ -12,6 +12,7 @@ const ProductCard = ({ product, flash = false }) => {
     toast.success("Đã thêm vào giỏ hàng!");
   };
 
+  // Format VND
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -19,45 +20,71 @@ const ProductCard = ({ product, flash = false }) => {
     }).format(price);
   };
 
-  return (
-    <div className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden relative border border-gray-100">
+  // Tính % Giảm giá
+  const discountPercent = product.originalPrice > product.price
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : 0;
 
-      {/* FLASH SALE BADGE – tone xanh */}
+  // Ảnh fallback
+  const productImage =
+    product.image ||
+    product.images?.[0] ||
+    "/placeholder.png";
+
+  return (
+    <div className="group bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative border border-gray-100">
+
+      {/* BADGE FLASH SALE */}
       {flash && (
-        <div className="absolute top-3 left-3 bg-blue-600 text-white text-xs font-semibold px-2.5 py-1.5 rounded-md shadow-lg z-20">
+        <div className="absolute top-3 left-3 bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg z-20">
           FLASH SALE
         </div>
       )}
 
-      <Link to={`/products/${product.id}`}>
+      {/* BADGE DISCOUNT */}
+      {discountPercent > 0 && (
+        <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg z-20">
+          -{discountPercent}%
+        </div>
+      )}
 
+      {/* CARD CONTENT */}
+      <Link to={`/products/${product.id}`}>
         {/* IMAGE */}
         <div className="relative overflow-hidden">
           <img
-            src={product.image}
+            src={productImage}
             alt={product.name}
-            className="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-60 object-cover transition-transform duration-700 group-hover:scale-110"
           />
+
+          {/* Hover Overlay Fade (nhẹ nhàng) */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500"></div>
         </div>
 
-        {/* PRODUCT INFO */}
+        {/* INFO AREA */}
         <div className="p-4">
-          <h3 className="font-semibold text-gray-800 text-lg line-clamp-2 min-h-[48px]">
+          {/* TITLE */}
+          <h3 className="font-semibold text-gray-800 text-lg line-clamp-2 min-h-[52px] group-hover:text-blue-600 transition">
             {product.name}
           </h3>
 
           {/* CATEGORY */}
-          <p className="text-gray-500 text-sm mb-1">{product.category}</p>
+          <p className="text-gray-500 text-sm mt-1 mb-2">
+            {product.category}
+          </p>
 
           {/* RATING */}
           <div className="flex items-center text-yellow-400 text-sm mb-2">
             <AiFillStar className="mr-1" />
             <span>{product.rating || 4.8}</span>
-            <span className="text-gray-500 ml-1 text-xs">({product.reviews})</span>
+            <span className="text-gray-500 ml-1 text-xs">
+              ({product.reviews || 120})
+            </span>
           </div>
 
           {/* PRICE */}
-          <div className="flex items-end space-x-2">
+          <div className="flex items-end space-x-2 mt-1">
             <span className="text-xl font-bold text-blue-600">
               {formatPrice(product.price)}
             </span>
@@ -71,10 +98,11 @@ const ProductCard = ({ product, flash = false }) => {
         </div>
       </Link>
 
-      {/* ADD TO CART BUTTON – tone xanh */}
+      {/* ADD TO CART (Slide Up) */}
       <button
         onClick={handleAddToCart}
-        className="absolute bottom-0 left-0 right-0 bg-blue-600 text-white py-3 text-center font-medium transform translate-y-full group-hover:translate-y-0 transition-all duration-300"
+        className="absolute bottom-0 left-0 right-0 bg-blue-600 text-white py-3 text-center font-medium 
+        transform translate-y-full group-hover:translate-y-0 transition-all duration-300"
       >
         Thêm vào giỏ
       </button>

@@ -1,7 +1,10 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const AdminLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const menuItems = [
     { path: '/admin', name: 'Dashboard', icon: '📊' },
@@ -9,6 +12,11 @@ const AdminLayout = () => {
     { path: '/admin/orders', name: 'Quản lý đơn hàng', icon: '🛒' },
     { path: '/admin/users', name: 'Quản lý người dùng', icon: '👥' }
   ];
+
+ const handleLogout = () => {
+  logout();
+  window.location.href = '/';
+};
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -21,7 +29,7 @@ const AdminLayout = () => {
           </div>
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-700">Xin chào, Admin</span>
-            <button className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
               Đăng xuất
             </button>
           </div>

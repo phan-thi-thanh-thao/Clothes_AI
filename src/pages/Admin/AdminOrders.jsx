@@ -6,17 +6,20 @@ const AdminOrders = () => {
   const { getAllOrders, updateOrderStatus, deleteOrder } = useOrder();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [payFilter, setPayFilter] = useState("");
 
   const orders = getAllOrders();
 
   const filteredOrders = orders.filter((order) => {
     const matchSearch =
-      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+      order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerName?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchStatus = statusFilter === "" || order.status === statusFilter;
+    const matchPayment =
+      payFilter === "" || order.paymentMethod === payFilter;
 
-    return matchSearch && matchStatus;
+    return matchSearch && matchStatus && matchPayment;
   });
 
   const getStatusColor = (status) => {
@@ -53,6 +56,33 @@ const AdminOrders = () => {
     }
   };
 
+  // MÀU THANH TOÁN
+  const getPaymentColor = (method) => {
+    switch (method) {
+      case "momo":
+        return "bg-pink-100 text-pink-700";
+      case "vnpay":
+        return "bg-blue-100 text-blue-700";
+      case "cod":
+        return "bg-gray-200 text-gray-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const getPaymentText = (method) => {
+    switch (method) {
+      case "momo":
+        return "MoMo";
+      case "vnpay":
+        return "VNPay";
+      case "cod":
+        return "COD (khi nhận)";
+      default:
+        return "Không rõ";
+    }
+  };
+
   const handleStatusUpdate = (id, status) => {
     updateOrderStatus(id, status);
     toast.success("Cập nhật trạng thái thành công!");
@@ -73,15 +103,16 @@ const AdminOrders = () => {
 
   return (
     <div className="">
-
-      {/* Page Header */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-extrabold text-gray-900">Quản lý đơn hàng</h1>
+        <h1 className="text-4xl font-extrabold text-gray-900">
+          Quản lý đơn hàng
+        </h1>
       </div>
 
-      {/* Search + Filter */}
+      {/* Search + Filters */}
       <div className="mb-8 flex flex-col md:flex-row gap-4">
-
+        {/* Search */}
         <input
           type="text"
           placeholder="🔍  Tìm theo mã đơn hoặc tên khách hàng"
@@ -90,6 +121,7 @@ const AdminOrders = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
 
+        {/* Filter Status */}
         <select
           className="px-4 py-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
           value={statusFilter}
@@ -103,6 +135,17 @@ const AdminOrders = () => {
           <option value="cancelled">Đã hủy</option>
         </select>
 
+        {/* Filter Payment Method */}
+        <select
+          className="px-4 py-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
+          value={payFilter}
+          onChange={(e) => setPayFilter(e.target.value)}
+        >
+          <option value="">Mọi phương thức</option>
+          <option value="momo">MoMo</option>
+          <option value="vnpay">VNPay</option>
+          <option value="cod">COD</option>
+        </select>
       </div>
 
       {/* Table */}
@@ -119,6 +162,12 @@ const AdminOrders = () => {
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
                 Ngày đặt
               </th>
+
+              {/* NEW: PAYMENT */}
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
+                Thanh toán
+              </th>
+
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
                 Trạng thái
               </th>
@@ -133,24 +182,45 @@ const AdminOrders = () => {
 
           <tbody>
             {filteredOrders.map((o) => (
-              <tr key={o.id} className="border-b last:border-none hover:bg-gray-50 transition">
-
-                {/* Order Info */}
+              <tr
+                key={o.id}
+                className="border-b last:border-none hover:bg-gray-50 transition"
+              >
+                {/* Order */}
                 <td className="px-6 py-5">
-                  <div className="font-semibold text-gray-900">#{o.orderNumber}</div>
-                  <div className="text-sm text-gray-500">{o.items.length} sản phẩm</div>
+                  <div className="font-semibold text-gray-900">
+                    #{o.orderNumber}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {o.items.length} sản phẩm
+                  </div>
                 </td>
 
                 {/* Customer */}
                 <td className="px-6 py-5">
-                  <div className="font-medium text-gray-900">{o.customerName}</div>
-                  <div className="text-sm text-gray-500">{o.customerEmail}</div>
+                  <div className="font-medium text-gray-900">
+                    {o.customerName || "Khách vãng lai"}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {o.customerEmail || "Không có email"}
+                  </div>
                 </td>
 
                 {/* Date */}
                 <td className="px-6 py-5 text-gray-800">{o.createdAt}</td>
 
-                {/* Status */}
+                {/* PAYMENT METHOD (NEW) */}
+                <td className="px-6 py-5">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${getPaymentColor(
+                      o.paymentMethod
+                    )}`}
+                  >
+                    {getPaymentText(o.paymentMethod)}
+                  </span>
+                </td>
+
+                {/* STATUS */}
                 <td className="px-6 py-5">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
@@ -169,7 +239,6 @@ const AdminOrders = () => {
                 {/* Actions */}
                 <td className="px-6 py-5">
                   <div className="flex flex-wrap gap-2">
-
                     <button className="text-blue-600 hover:text-blue-800 font-semibold">
                       Chi tiết
                     </button>
@@ -207,7 +276,6 @@ const AdminOrders = () => {
                     >
                       Xóa
                     </button>
-
                   </div>
                 </td>
               </tr>

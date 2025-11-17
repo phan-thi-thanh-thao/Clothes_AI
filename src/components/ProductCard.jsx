@@ -21,18 +21,20 @@ const ProductCard = ({ product, flash = false }) => {
   };
 
   // Tính % Giảm giá
-  const discountPercent = product.originalPrice > product.price
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
+  const discountPercent =
+    product.originalPrice > product.price
+      ? Math.round(
+          ((product.originalPrice - product.price) / product.originalPrice) *
+            100
+        )
+      : 0;
 
   // Ảnh fallback
   const productImage =
-    product.image ||
-    product.images?.[0] ||
-    "/placeholder.png";
+    product.image || product.images?.[0] || "/placeholder.png";
 
   return (
-    <div className="group bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative border border-gray-100">
+    <div className="group bg-white rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden relative border border-gray-100 hover:scale-[1.02]">
 
       {/* BADGE FLASH SALE */}
       {flash && (
@@ -58,12 +60,12 @@ const ProductCard = ({ product, flash = false }) => {
             className="w-full h-60 object-cover transition-transform duration-700 group-hover:scale-110"
           />
 
-          {/* Hover Overlay Fade (nhẹ nhàng) */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500"></div>
+          {/* Hover overlay nhẹ */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500"></div>
         </div>
 
         {/* INFO AREA */}
-        <div className="p-4">
+        <div className="p-4 pb-20"> {/* thêm pb-20 để chừa chỗ cho nút */}
           {/* TITLE */}
           <h3 className="font-semibold text-gray-800 text-lg line-clamp-2 min-h-[52px] group-hover:text-blue-600 transition">
             {product.name}
@@ -98,11 +100,16 @@ const ProductCard = ({ product, flash = false }) => {
         </div>
       </Link>
 
-      {/* ADD TO CART (Slide Up) */}
+      {/* ADD TO CART (CỐ ĐỊNH - KHÔNG SLIDE) */}
       <button
         onClick={handleAddToCart}
-        className="absolute bottom-0 left-0 right-0 bg-blue-600 text-white py-3 text-center font-medium 
-        transform translate-y-full group-hover:translate-y-0 transition-all duration-300"
+        className="
+          absolute bottom-0 left-0 right-0 
+          bg-blue-600 text-white py-3 text-center font-medium 
+          rounded-b-3xl
+          hover:bg-blue-700 hover:scale-[1.02]
+          transition-all duration-200
+        "
       >
         Thêm vào giỏ
       </button>

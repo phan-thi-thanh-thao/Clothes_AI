@@ -13,6 +13,7 @@ export const useCart = () => {
 export const CartProvider = ({ children }) => {
   const [items, setItems] = useState([]);
 
+  // Load cart from localStorage 1 lần duy nhất khi khởi tạo
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
@@ -76,6 +77,7 @@ export const CartProvider = ({ children }) => {
     saveToStorage(newItems);
   };
 
+  // Clear Cart — KHÔNG gọi useEffect tự động
   const clearCart = () => {
     setItems([]);
     localStorage.removeItem('cart');

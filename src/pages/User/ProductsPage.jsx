@@ -4,11 +4,51 @@ import { products, categories } from "../../data/mockData";
 
 const ProductsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedPrice, setSelectedPrice] = useState(null); 
   const [sortBy, setSortBy] = useState("name");
 
-  const filteredProducts = products.filter(
-    (product) =>
-      selectedCategory === "" || product.category === selectedCategory
+  // ======================= FILTER PRICE =======================
+  const priceFilter = (product) => {
+    if (!selectedPrice) return true;
+
+    const price = product.price;
+
+    if (selectedPrice === "under500") return price < 500000;
+    if (selectedPrice === "500to1m") return price >= 500000 && price <= 1000000;
+    if (selectedPrice === "above1m") return price > 1000000;
+
+    return true;
+  };
+
+  // ======================= SORT LOGIC =======================
+  const sortProducts = (list) => {
+    const sorted = [...list];
+
+    switch (sortBy) {
+      case "name":
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
+
+      case "price-asc":
+        return sorted.sort((a, b) => a.price - b.price);
+
+      case "price-desc":
+        return sorted.sort((a, b) => b.price - a.price);
+
+      case "rating":
+        return sorted.sort((a, b) => b.rating - a.rating);
+
+      default:
+        return sorted;
+    }
+  };
+
+  // ======================= MAIN FILTER =======================
+  const filteredProducts = sortProducts(
+    products.filter(
+      (product) =>
+        (selectedCategory === "" ||
+          product.category === selectedCategory) && priceFilter(product)
+    )
   );
 
   return (
@@ -18,7 +58,6 @@ const ProductsPage = () => {
         {/* ================= FILTER SIDEBAR ================= */}
         <aside className="lg:w-1/4">
           <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-28 border border-gray-100">
-
             <h3 className="text-xl font-bold mb-6 text-gray-800">
               Bộ lọc tìm kiếm
             </h3>
@@ -58,24 +97,49 @@ const ProductsPage = () => {
             <div className="mb-8">
               <h4 className="font-semibold text-gray-700 mb-3">Khoảng giá</h4>
               <div className="space-y-2 text-gray-600">
+
                 <label className="filter-option">
-                  <input type="checkbox" />
+                  <input
+                    type="checkbox"
+                    checked={selectedPrice === "under500"}
+                    onChange={() =>
+                      setSelectedPrice(
+                        selectedPrice === "under500" ? null : "under500"
+                      )
+                    }
+                  />
                   <span>Dưới 500,000đ</span>
                 </label>
 
                 <label className="filter-option">
-                  <input type="checkbox" />
+                  <input
+                    type="checkbox"
+                    checked={selectedPrice === "500to1m"}
+                    onChange={() =>
+                      setSelectedPrice(
+                        selectedPrice === "500to1m" ? null : "500to1m"
+                      )
+                    }
+                  />
                   <span>500,000đ – 1,000,000đ</span>
                 </label>
 
                 <label className="filter-option">
-                  <input type="checkbox" />
+                  <input
+                    type="checkbox"
+                    checked={selectedPrice === "above1m"}
+                    onChange={() =>
+                      setSelectedPrice(
+                        selectedPrice === "above1m" ? null : "above1m"
+                      )
+                    }
+                  />
                   <span>Trên 1,000,000đ</span>
                 </label>
               </div>
             </div>
 
-            {/* SORT */}
+            {/* SORT SELECT */}
             <div>
               <h4 className="font-semibold text-gray-700 mb-3">Sắp xếp</h4>
               <select

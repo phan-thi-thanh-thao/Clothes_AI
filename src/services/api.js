@@ -1,33 +1,36 @@
 import { products } from '../data/mockData';
 
 class ApiService {
-  // AI Search
+  // ============================
+  // 🔍 AI SEARCH (Mock)
+  // ============================
   async searchByImage(imageFile) {
     return new Promise((resolve) => {
       setTimeout(() => {
-        // Mock AI search - return similar products
-        const results = products.slice(0, 3);
+        const results = products.slice(0, 3); // mock
         resolve(results);
       }, 2000);
     });
   }
 
-  // Product APIs
+  // ============================
+  // 🛒 PRODUCT APIs (Mock)
+  // ============================
   async getProducts(filters = {}) {
     return new Promise((resolve) => {
       setTimeout(() => {
         let filteredProducts = [...products];
-        
+
         if (filters.category) {
           filteredProducts = filteredProducts.filter(p => p.category === filters.category);
         }
-        
+
         if (filters.search) {
-          filteredProducts = filteredProducts.filter(p => 
+          filteredProducts = filteredProducts.filter(p =>
             p.name.toLowerCase().includes(filters.search.toLowerCase())
           );
         }
-        
+
         resolve(filteredProducts);
       }, 500);
     });
@@ -80,14 +83,16 @@ class ApiService {
     });
   }
 
-  // User Management (Admin)
+  // ============================
+  // 👤 USER MANAGEMENT (Mock)
+  // ============================
   async getUsers() {
     return new Promise((resolve) => {
       setTimeout(() => {
         const users = [
           { id: 1, name: 'Admin', email: 'admin@admin.com', role: 'admin', status: 'active' },
           { id: 2, name: 'Nguyễn Văn A', email: 'user@user.com', role: 'user', status: 'active' },
-          { id: 3, name: 'Trần Thị B', email: 'user2@user.com', role: 'user', status: 'active' }
+          { id: 3, name: 'Trần Thị B', email: 'user2@user2.com', role: 'user', status: 'active' }
         ];
         resolve(users);
       }, 500);
@@ -100,6 +105,69 @@ class ApiService {
         resolve({ success: true });
       }, 500);
     });
+  }
+
+  // ==================================================
+  // 💳 THANH TOÁN MOMO / VNPAY (MOCK + BE READY)
+  // ==================================================
+
+  /**
+   * FE MOCK THANH TOÁN MoMo
+   * ---------------------------------------------------------
+   * Khi backend chưa làm, FE redirect bên trong dự án luôn.
+   * Sau này có BE thật → đổi thành this.momoPaymentReal()
+   */
+  async momoPaymentMock(payload) {
+    console.log("MOCK MOMO PAYLOAD:", payload);
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          payUrl: `/payment-success?orderId=${payload.orderId}&method=momo`
+        });
+      }, 800);
+    });
+  }
+
+  /**
+   * FE MOCK THANH TOÁN VNPay
+   */
+  async vnpayPaymentMock(payload) {
+    console.log("MOCK VNPAY PAYLOAD:", payload);
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          payUrl: `/payment-success?orderId=${payload.orderId}&method=vnpay`
+        });
+      }, 800);
+    });
+  }
+
+  /**
+   * THANH TOÁN MOMO REAL (Backend thật)
+   */
+  async momoPaymentReal(payload) {
+    const res = await fetch("http://localhost:3000/api/payment/momo/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    return res.json();
+  }
+
+  /**
+   * THANH TOÁN VNPay REAL (Backend thật)
+   */
+  async vnpayPaymentReal(payload) {
+    const res = await fetch("http://localhost:3000/api/payment/vnpay/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    return res.json();
   }
 }
 

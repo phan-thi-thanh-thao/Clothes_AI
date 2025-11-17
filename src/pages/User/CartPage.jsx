@@ -1,10 +1,8 @@
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-import { useAuth } from "../../context/AuthContext";
 
 const CartPage = () => {
   const { items, removeFromCart, updateQuantity, getTotalAmount } = useCart();
-  const { isAuthenticated } = useAuth();
 
   const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", {
@@ -51,14 +49,12 @@ const CartPage = () => {
               key={`${item.id}-${item.size}-${item.color}`}
               className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex items-center gap-6"
             >
-              {/* Image */}
               <img
                 src={item.image}
                 alt={item.name}
                 className="w-24 h-24 object-cover rounded-xl border"
               />
 
-              {/* Info */}
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900">
                   {item.name}
@@ -74,7 +70,6 @@ const CartPage = () => {
                 </p>
               </div>
 
-              {/* Qty */}
               <div className="flex items-center gap-3">
                 <button
                   onClick={() =>
@@ -109,7 +104,6 @@ const CartPage = () => {
                 </button>
               </div>
 
-              {/* Total Price + Remove */}
               <div className="text-right">
                 <p className="text-xl font-bold text-gray-800">
                   {formatPrice(item.price * item.quantity)}
@@ -158,34 +152,12 @@ const CartPage = () => {
               </div>
             </div>
 
-            {/* Checkout Button */}
-            {isAuthenticated ? (
-              <Link
-                to="/checkout"
-                className="w-full bg-blue-600 text-white py-4 rounded-xl block text-center font-semibold text-lg hover:bg-blue-700 transition shadow-md"
-              >
-                Tiến hành thanh toán
-              </Link>
-            ) : (
-              <div className="space-y-4">
-                <Link
-                  to="/login"
-                  className="w-full bg-blue-600 text-white py-4 rounded-xl block text-center font-semibold text-lg hover:bg-blue-700 transition shadow-md"
-                >
-                  Đăng nhập để thanh toán
-                </Link>
-
-                <p className="text-sm text-gray-600 text-center">
-                  Hoặc{" "}
-                  <Link
-                    to="/register"
-                    className="text-blue-600 hover:text-blue-800 transition"
-                  >
-                    đăng ký tài khoản mới
-                  </Link>
-                </p>
-              </div>
-            )}
+            {/* ====================== NEW CHECKOUT BUTTON ====================== */}
+            <Link to="/checkout">
+              <button className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-blue-700 transition shadow-md">
+                Thanh toán
+              </button>
+            </Link>
 
             <Link
               to="/products"

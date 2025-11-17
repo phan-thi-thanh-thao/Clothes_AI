@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
+import { useOrder } from "../../context/OrderContext";
 import { products } from "../../data/mockData";
 import toast from "react-hot-toast";
 import ProductCard from "../../components/ProductCard";
@@ -8,6 +10,8 @@ import ProductCard from "../../components/ProductCard";
 const ProductDetailPage = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
+  const { user } = useAuth();
+  const { orders } = useOrder();
 
   const product = products.find((p) => p.id === parseInt(id)) || products[0];
 
@@ -15,6 +19,19 @@ const ProductDetailPage = () => {
   const [selectedSize, setSelectedSize] = useState("M");
   const [selectedColor, setSelectedColor] = useState("Đen");
   const [quantity, setQuantity] = useState(1);
+
+  const [reviewText, setReviewText] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+
+  // -------------------------------
+  // Check if user purchased this product at least once
+  // -------------------------------
+  const hasPurchased = useMemo(() => {
+    if (!user) return false;
+    return orders.some((order) =>
+      order.items.some((item) => item.id === product.id)
+    );
+  }, [orders, user, product.id]);
 
   const discount =
     product.originalPrice > product.price
@@ -29,6 +46,17 @@ const ProductDetailPage = () => {
       currency: "VND",
     }).format(price);
 
+  const handleSubmitReview = () => {
+    if (!reviewText.trim()) {
+      toast.error("Vui lòng nhập nội dung đánh giá!");
+      return;
+    }
+
+    toast.success("Đã gửi đánh giá! (mock FE)");
+    setReviewText("");
+    setReviewRating(5);
+  };
+
   return (
     <div className="container mx-auto px-4 py-16">
 
@@ -36,7 +64,6 @@ const ProductDetailPage = () => {
 
         {/* ==================== IMAGE GALLERY ==================== */}
         <div>
-          {/* MAIN IMAGE */}
           <div className="rounded-3xl overflow-hidden shadow-lg bg-white">
             <img
               src={mainImage}
@@ -45,7 +72,6 @@ const ProductDetailPage = () => {
             />
           </div>
 
-          {/* THUMBNAILS */}
           <div className="grid grid-cols-4 gap-4 mt-4">
             {[product.image, product.image, product.image, product.image].map(
               (img, i) => (
@@ -72,13 +98,11 @@ const ProductDetailPage = () => {
         {/* ==================== PRODUCT INFO ==================== */}
         <div className="animate-fadeIn">
 
-          {/* TITLE */}
           <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">
             {product.name}
           </h1>
           <p className="text-gray-500 text-lg mt-1">{product.category}</p>
 
-          {/* RATING */}
           <div className="flex items-center mt-4 mb-6">
             {[...Array(5)].map((_, i) => (
               <svg
@@ -91,7 +115,7 @@ const ProductDetailPage = () => {
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 00.951-.69l1.07-3.292z" />
               </svg>
             ))}
             <span className="ml-3 text-gray-600 text-sm">
@@ -99,7 +123,6 @@ const ProductDetailPage = () => {
             </span>
           </div>
 
-          {/* PRICE */}
           <div className="mb-10">
             <span className="text-4xl font-extrabold text-blue-600">
               {formatPrice(product.price)}
@@ -199,17 +222,59 @@ const ProductDetailPage = () => {
           </div>
 
           {/* DESCRIPTION */}
-          <div>
+          <div className="mb-12">
             <h3 className="text-xl font-semibold mb-3">Mô tả sản phẩm</h3>
             <p className="text-gray-600 leading-relaxed">
               Sản phẩm chất lượng cao, thiết kế hiện đại, chất liệu thoáng mát và bền đẹp.
               Phù hợp cho nhiều dịp khác nhau – đi học, đi chơi, đi làm.
             </p>
           </div>
+
+          {/* ================= REVIEW SECTION ================= */}
+          {hasPurchased && (
+            <div className="mt-10 border-t pt-8">
+              <h3 className="text-2xl font-bold mb-4">Đánh giá sản phẩm</h3>
+
+              {/* Rating stars */}
+              <div className="flex gap-1 mb-3">
+                {[...Array(5)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setReviewRating(i + 1)}
+                    className="text-yellow-400 text-3xl hover:scale-110 transition-transform"
+                  >
+                    {i < reviewRating ? "★" : "☆"}
+                  </button>
+                ))}
+              </div>
+
+              {/* Review text */}
+              <textarea
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                placeholder="Nhập cảm nhận của bạn về sản phẩm..."
+                className="w-full border rounded-xl p-4 h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              {/* Submit button */}
+              <button
+                onClick={handleSubmitReview}
+                className="mt-4 w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:scale-105 transition-transform shadow"
+              >
+                Gửi đánh giá
+              </button>
+            </div>
+          )}
+
+          {!hasPurchased && (
+            <p className="text-gray-500 mt-4 text-sm italic">
+              * Chỉ khách hàng đã mua sản phẩm mới có thể đánh giá.
+            </p>
+          )}
         </div>
       </div>
 
-      {/* ==================== SIMILAR PRODUCTS ==================== */}
+      {/* SIMILAR PRODUCTS */}
       <div className="mt-20">
         <h2 className="text-3xl font-bold text-gray-800 mb-10">
           Sản phẩm tương tự
@@ -222,7 +287,6 @@ const ProductDetailPage = () => {
         </div>
       </div>
 
-      {/* Fade Animation */}
       <style>
         {`
           @keyframes fadeIn {

@@ -35,14 +35,15 @@ const CheckoutPage = () => {
         paymentMethod: formData.paymentMethod,
         customerName: formData.fullName,
         customerEmail: user.email,
+        status: "pending",
       };
 
       const result = await createOrder(orderData);
 
-      if (result.success) {
+      if (result.success && result.order) {
         clearCart();
         toast.success("Đặt hàng thành công!");
-        navigate("/orders");
+        navigate(`/payment-pending?orderId=${result.order.id}`);
       }
     } catch (error) {
       toast.error("Đã xảy ra lỗi!");
@@ -57,7 +58,6 @@ const CheckoutPage = () => {
       currency: "VND",
     }).format(price);
 
-  /* ================= EMPTY CART ================= */
   if (items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
@@ -78,7 +78,6 @@ const CheckoutPage = () => {
     );
   }
 
-  /* ================= CHECKOUT PAGE ================= */
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 className="text-4xl font-extrabold text-gray-900 mb-10">
@@ -86,11 +85,9 @@ const CheckoutPage = () => {
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-
         {/* ================= FORM ================= */}
         <div>
           <form onSubmit={handleSubmit} className="space-y-8">
-
             {/* SHIPPING INFO */}
             <div className="bg-white rounded-3xl shadow-md p-8 border border-gray-100">
               <h2 className="text-2xl font-bold mb-6 text-gray-800">
@@ -98,8 +95,6 @@ const CheckoutPage = () => {
               </h2>
 
               <div className="space-y-5">
-
-                {/* Full Name */}
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
                     Họ và tên *
@@ -114,7 +109,6 @@ const CheckoutPage = () => {
                   />
                 </div>
 
-                {/* Phone */}
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
                     Số điện thoại *
@@ -129,7 +123,6 @@ const CheckoutPage = () => {
                   />
                 </div>
 
-                {/* Address */}
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
                     Địa chỉ giao hàng *
@@ -146,45 +139,81 @@ const CheckoutPage = () => {
               </div>
             </div>
 
-            {/* PAYMENT METHOD */}
+            {/* ================= PAYMENT METHOD ================= */}
             <div className="bg-white rounded-3xl shadow-md p-8 border border-gray-100">
               <h2 className="text-2xl font-bold mb-6 text-gray-800">
                 Phương thức thanh toán
               </h2>
 
-              <div className="space-y-4 text-gray-800">
+              <div className="space-y-6">
 
-                <label className="payment-option">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="cod"
-                    checked={formData.paymentMethod === "cod"}
-                    onChange={handleChange}
-                  />
-                  <div>
-                    <p className="font-semibold">Thanh toán khi nhận hàng (COD)</p>
-                    <p className="text-sm text-gray-600">
-                      Thanh toán bằng tiền mặt khi nhận hàng
+                {/* COD button – FULL WIDTH */}
+                <button
+                  type="button"
+                  className={`payment-button-full ${
+                    formData.paymentMethod === "cod" ? "selected-main" : ""
+                  }`}
+                  onClick={() =>
+                    setFormData({ ...formData, paymentMethod: "cod" })
+                  }
+                >
+                  💵 Thanh toán khi nhận hàng (COD)
+                </button>
+
+                {/* BANK TITLE – NOT clickable */}
+                <div className="mt-4 mb-2">
+                  <p className="font-semibold text-gray-800">
+                    Chuyển khoản ngân hàng
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Thanh toán qua ví MoMo hoặc VNPay
+                  </p>
+                </div>
+
+                {/* ALWAYS VISIBLE WALLET BUTTONS */}
+                <div className="grid grid-cols-2 gap-4">
+
+                  {/* MoMo */}
+                  <div
+                    className={`wallet-button ${
+                      formData.paymentMethod === "momo"
+                        ? "wallet-selected"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      setFormData({ ...formData, paymentMethod: "momo" })
+                    }
+                  >
+                    <img
+                      src="/images/payment/momo.png"
+                      className="w-16 h-16 object-contain mx-auto mb-1"
+                    />
+                    <p className="font-semibold text-center text-pink-600">
+                      MoMo
                     </p>
                   </div>
-                </label>
 
-                <label className="payment-option">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="bank"
-                    checked={formData.paymentMethod === "bank"}
-                    onChange={handleChange}
-                  />
-                  <div>
-                    <p className="font-semibold">Chuyển khoản ngân hàng</p>
-                    <p className="text-sm text-gray-600">
-                      Thanh toán trước khi giao hàng
+                  {/* VNPay */}
+                  <div
+                    className={`wallet-button ${
+                      formData.paymentMethod === "vnpay"
+                        ? "wallet-selected"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      setFormData({ ...formData, paymentMethod: "vnpay" })
+                    }
+                  >
+                    <img
+                      src="/images/payment/vnpay.png"
+                      className="w-16 h-16 object-contain mx-auto mb-1"
+                    />
+                    <p className="font-semibold text-center text-blue-600">
+                      VNPay
                     </p>
                   </div>
-                </label>
+
+                </div>
               </div>
             </div>
 
@@ -194,7 +223,7 @@ const CheckoutPage = () => {
               disabled={loading}
               className="w-full py-4 bg-blue-600 text-white rounded-xl font-semibold text-lg shadow-md hover:bg-blue-700 transition disabled:opacity-50"
             >
-              {loading ? "Đang xử lý..." : "Đặt hàng ngay"}
+              {loading ? "Đang xử lý..." : "Xác nhận thanh toán"}
             </button>
           </form>
         </div>
@@ -249,7 +278,6 @@ const CheckoutPage = () => {
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Custom styles */}
@@ -269,20 +297,44 @@ const CheckoutPage = () => {
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
           }
 
-          .payment-option {
-            display: flex;
-            gap: 12px;
-            padding: 12px;
+          /* COD full width button */
+          .payment-button-full {
+            width: 100%;
+            padding: 14px;
             border-radius: 14px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            font-weight: 600;
+            text-align: left;
             cursor: pointer;
             transition: 0.25s;
           }
-          .payment-option:hover {
-            background: #F3F4F6;
+          .payment-button-full:hover {
+            background: #e5e7eb;
           }
-          .payment-option input {
-            transform: scale(1.2);
-            accent-color: #2563EB;
+          .selected-main {
+            background: white;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+          }
+
+          /* Wallet buttons */
+          .wallet-button {
+            border: 1px solid #d1d5db;
+            padding: 14px;
+            border-radius: 16px;
+            background: #f9fafb;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.25s;
+          }
+          .wallet-button:hover {
+            background: #eef2ff;
+          }
+          .wallet-selected {
+            background: white;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
           }
         `}
       </style>

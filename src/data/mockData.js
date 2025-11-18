@@ -1,4 +1,6 @@
-// Mock data cho giao diện
+// =====================================================
+// 🖼 BANNER MOCK DATA
+// =====================================================
 export const banners = [
   {
     id: 1,
@@ -16,6 +18,11 @@ export const banners = [
   }
 ];
 
+
+// =====================================================
+// 👕 PRODUCT MOCK DATA
+// (rating & reviews chỉ là fallback – sẽ bị override bởi review thật)
+// =====================================================
 export const products = [
   {
     id: 1,
@@ -24,8 +31,8 @@ export const products = [
     originalPrice: 399000,
     image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&h=400&fit=crop",
     category: "Áo thun",
-    rating: 4.5,
-    reviews: 128
+    rating: 4.5,   
+    reviews: 128  
   },
   {
     id: 2,
@@ -59,9 +66,42 @@ export const products = [
   }
 ];
 
+
+// =====================================================
+// 📂 CATEGORY MOCK DATA
+// =====================================================
 export const categories = [
   { id: 1, name: "Áo thun", icon: "👕", count: 45 },
   { id: 2, name: "Quần jeans", icon: "👖", count: 32 },
   { id: 3, name: "Áo sơ mi", icon: "👔", count: 28 },
   { id: 4, name: "Váy", icon: "👗", count: 38 }
+];
+
+
+// =====================================================
+// ⭐ REVIEW MOCK DATA (GỘP CHUNG TRONG mockData.js)
+// =====================================================
+export let mockReviews = [
+  {
+    id: "r1",
+    productId: 1,
+    userId: 2,
+    userName: "Nguyễn Văn A",
+    rating: 5,
+    comment: "Áo đẹp, chất vải mịn, đóng gói cẩn thận!",
+    images: [
+      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=500"
+    ],
+    createdAt: "2024-11-20T10:00:00"
+  },
+  {
+    id: "r2",
+    productId: 1,
+    userId: 3,
+    userName: "Trần Thị B",
+    rating: 4,
+    comment: "Mặc ổn, nhưng màu hơi lệch nhẹ so với ảnh",
+    images: [],
+    createdAt: "2024-11-19T09:00:00"
+  }
 ];

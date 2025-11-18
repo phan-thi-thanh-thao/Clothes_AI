@@ -1,52 +1,51 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
 const OrderContext = createContext();
-
-/* =============================================================
-    HOOK useOrder — để import đúng trong các file
-   ============================================================= */
 export const useOrder = () => useContext(OrderContext);
 
-/* =============================================================
-    PROVIDER
-   ============================================================= */
 export const OrderProvider = ({ children }) => {
-  // Load từ localStorage để không mất đơn khi reload
+  // Load từ localStorage
   const [orders, setOrders] = useState(() => {
     const saved = localStorage.getItem("orders");
-    return saved ? JSON.parse(saved) : [
-      {
-        id: 1,
-        orderNumber: "DH001",
-        userId: 2,
-        items: [
+    return saved
+      ? JSON.parse(saved)
+      : [
           {
             id: 1,
-            name: "Áo Thun Nam Basic",
-            price: 299000,
-            quantity: 2,
-            size: "L",
-            color: "Đen",
+            orderNumber: "DH001",
+            userId: 2,
+            items: [
+              {
+                id: 1,
+                name: "Áo Thun Nam Basic",
+                price: 299000,
+                quantity: 2,
+                size: "L",
+                color: "Đen",
+              },
+            ],
+            totalAmount: 598000,
+
+            /* FIX: tách trạng thái */
+            status: "delivered", // định nghĩa: pending → confirmed → shipping → delivered
+            paymentStatus: "unpaid",
+
+            shippingAddress: "123 Nguyễn Văn Linh, Q7, TP.HCM",
+            paymentMethod: "cod",
+            createdAt: "2024-01-15",
+            customerName: "Nguyễn Văn A",
+            customerEmail: "user@user.com",
           },
-        ],
-        totalAmount: 598000,
-        status: "delivered",
-        shippingAddress: "123 Nguyễn Văn Linh, Q7, TP.HCM",
-        paymentMethod: "cod",
-        createdAt: "2024-01-15",
-        customerName: "Nguyễn Văn A",
-        customerEmail: "user@user.com",
-      },
-    ];
+        ];
   });
 
-  // Ghi xuống localStorage mỗi khi orders thay đổi
+  // Lưu xuống localStorage
   useEffect(() => {
     localStorage.setItem("orders", JSON.stringify(orders));
   }, [orders]);
 
   /* =============================================================
-      CREATE ORDER (MoMo, VNPay, COD)
+      CREATE ORDER
      ============================================================= */
   const createOrder = async (orderData) => {
     try {
@@ -60,61 +59,57 @@ export const OrderProvider = ({ children }) => {
         id,
         orderNumber: `DH${String(id).slice(-6)}`,
         ...orderData,
-        status: isPaid ? "paid" : "pending",
+
+        // FIX: luôn để admin xác nhận đơn
+        status: "pending",
+
+        // FIX: thanh toán vẫn ghi nhận đã trả tiền
+        paymentStatus: isPaid ? "paid" : "unpaid",
+
         createdAt: new Date().toISOString(),
       };
 
       setOrders((prev) => [newOrder, ...prev]);
 
       return { success: true, order: newOrder };
-    } catch (error) {
-      return { success: false, error: error.message };
+    } catch (err) {
+      return { success: false, error: err.message };
     }
   };
 
   /* =============================================================
       GETTERS
      ============================================================= */
-  const getUserOrders = (userId) => {
-    return orders.filter((order) => order.userId === userId);
-  };
+  const getUserOrders = (userId) =>
+    orders.filter((order) => order.userId === userId);
 
-  const getAllOrders = () => {
-    return orders;
-  };
+  const getAllOrders = () => orders;
 
   /* =============================================================
       UPDATE ORDER STATUS
      ============================================================= */
-  const updateOrderStatus = (orderId, status) => {
+  const updateOrderStatus = (id, newStatus) => {
     setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId ? { ...order, status } : order
-      )
+      prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o))
     );
   };
 
   /* =============================================================
       CANCEL ORDER
      ============================================================= */
-  const cancelOrder = (orderId) => {
+  const cancelOrder = (id) => {
     setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId ? { ...order, status: "cancelled" } : order
-      )
+      prev.map((o) => (o.id === id ? { ...o, status: "cancelled" } : o))
     );
   };
 
   /* =============================================================
       DELETE ORDER
      ============================================================= */
-  const deleteOrder = (orderId) => {
-    setOrders((prev) => prev.filter((order) => order.id !== orderId));
+  const deleteOrder = (id) => {
+    setOrders((prev) => prev.filter((o) => o.id !== id));
   };
 
-  /* =============================================================
-      CONTEXT VALUE
-     ============================================================= */
   const value = {
     orders,
     createOrder,

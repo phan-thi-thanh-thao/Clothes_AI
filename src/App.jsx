@@ -22,7 +22,11 @@ import OrdersPage from './pages/User/OrdersPage';
 import CheckoutPage from './pages/User/CheckoutPage';
 import DiscountPage from "./pages/User/DiscountPage";
 
+// ⭐ PAGE REVIEW
+import ReviewPage from './pages/User/ReviewPage';
 
+// ⭐ NEW — ORDER DETAIL PAGE
+import OrderDetailPage from './pages/User/OrderDetailPage';
 
 // Payment Pages
 import PaymentSuccess from './pages/User/Payment/PaymentSuccess';
@@ -55,6 +59,7 @@ function App() {
                 <Route path="cart" element={<CartPage />} />
                 <Route path="search" element={<SearchPage />} />
                 <Route path="discounts" element={<DiscountPage />} />
+
                 <Route
                   path="checkout"
                   element={
@@ -82,7 +87,27 @@ function App() {
                   }
                 />
 
-                {/* 🔥 PAYMENT ROUTES */}
+                {/* ⭐ NEW ROUTE - ORDER DETAIL */}
+                <Route
+                  path="orders/:orderId"
+                  element={
+                    <ProtectedRoute>
+                      <OrderDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Review route */}
+                <Route
+                  path="orders/:orderId/review/:productId"
+                  element={
+                    <ProtectedRoute>
+                      <ReviewPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Payment Routes */}
                 <Route path="payment-success" element={<PaymentSuccess />} />
                 <Route path="payment-failed" element={<PaymentFailed />} />
                 <Route path="payment-pending" element={<PaymentPending />} />

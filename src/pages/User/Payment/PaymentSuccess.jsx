@@ -8,28 +8,50 @@ export default function PaymentSuccess() {
   const navigate = useNavigate();
 
   const orderId = params.get("orderId");
-  const method = params.get("method") || "unknown";
 
   const { getAllOrders, updateOrderStatus } = useOrder();
   const { clearCart } = useCart();
 
-  // FIXED — chỉ chạy 1 lần khi orderId xuất hiện
-  useEffect(() => {
-    if (!orderId) return;
+  // Load order
+  const orders = getAllOrders();
+  const order = orders.find((o) => String(o.id) === String(orderId));
 
-    clearCart();
-    updateOrderStatus(Number(orderId), "paid");
-  }, [orderId]);   // ❗ chỉ để orderId, không để hàm vào đây
-
-  const allOrders = getAllOrders();
-  const order = allOrders.find((o) => String(o.id) === String(orderId));
-
+  // Map tên hiển thị của phương thức
   const paymentText = {
     momo: "MoMo",
     vnpay: "VNPay",
-    cod: "Thanh toán khi nhận hàng",
-    unknown: "Không rõ",
+    cod: "Thanh toán khi nhận hàng (COD)",
   };
+
+  // Khi vào trang → clear cart + set paymentStatus = paid
+  useEffect(() => {
+    if (!orderId || !order) return;
+
+    clearCart();
+
+    // cập nhật trạng thái thanh toán (không động vào trạng thái vận chuyển)
+    updateOrderStatus(order.id, order.status); // giữ nguyên status shipping/pending/...
+
+    // cập nhật paymentStatus
+    order.paymentStatus = "paid";
+
+    // cập nhật localStorage
+    localStorage.setItem("orders", JSON.stringify([...orders]));
+
+  }, [orderId]);
+
+  if (!order) {
+    return (
+      <div className="container mx-auto px-4 py-20 text-center">
+        <h1 className="text-3xl font-bold text-red-600">
+          Không tìm thấy đơn hàng!
+        </h1>
+        <p className="mt-2 text-gray-600">
+          Có thể bạn đã reload trang sau khi thanh toán.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-xl mx-auto bg-white shadow-lg rounded-3xl p-10 text-center border border-gray-200 mt-10">
@@ -43,40 +65,31 @@ export default function PaymentSuccess() {
         Cảm ơn bạn đã đặt hàng tại <b>ClothesAI</b> 💙
       </p>
 
-      {/* ========== ORDER BOX ========== */}
+      {/* Order box */}
       <div className="bg-gray-50 rounded-2xl p-5 shadow-inner mb-6 text-left">
         <p className="text-lg text-gray-900 font-semibold">
           Mã đơn hàng:{" "}
-          <span className="text-blue-600">
-            {order?.orderNumber || `#${orderId}`}
-          </span>
+          <span className="text-blue-600">{order.orderNumber}</span>
         </p>
 
         <p className="mt-2 text-gray-700">
           Phương thức thanh toán:{" "}
           <span className="font-semibold text-green-600">
-            {paymentText[method]}
+            {paymentText[order.paymentMethod]}
           </span>
         </p>
 
         <p className="mt-1 text-gray-700">
           Tổng tiền:{" "}
           <span className="font-semibold text-blue-700">
-            {order?.totalAmount?.toLocaleString("vi-VN")}₫
+            {order.totalAmount.toLocaleString("vi-VN")}₫
           </span>
         </p>
-
-        {!order && (
-          <p className="text-sm text-red-500 mt-3">
-            ⚠ Không tìm thấy thông tin đơn hàng — có thể do reload trang.
-          </p>
-        )}
       </div>
 
-      {/* ========== Actions ========== */}
       <div className="space-y-4">
         <button
-          onClick={() => navigate("/orders", { replace: true })}
+          onClick={() => navigate(`/orders/${order.id}`)}
           className="w-full block bg-blue-600 text-white py-3 rounded-xl font-medium text-lg hover:bg-blue-700 transition"
         >
           Xem đơn hàng

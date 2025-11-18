@@ -1,5 +1,6 @@
 import { useAuth } from "../../context/AuthContext";
 import { useOrder } from "../../context/OrderContext";
+import { Link } from "react-router-dom";
 
 const OrdersPage = () => {
   const { user } = useAuth();
@@ -13,6 +14,7 @@ const OrdersPage = () => {
       currency: "VND",
     }).format(price);
 
+  // COLOR ĐƠN HÀNG
   const getStatusColor = (status) => {
     switch (status) {
       case "pending":
@@ -47,6 +49,13 @@ const OrdersPage = () => {
     }
   };
 
+  // NEW — màu trạng thái thanh toán
+  const getPaymentColor = (paymentStatus) => {
+    return paymentStatus === "paid"
+      ? "text-green-700 font-semibold"
+      : "text-red-600 font-semibold";
+  };
+
   const handleCancelOrder = (orderId) => {
     if (window.confirm("Bạn có chắc muốn hủy đơn hàng này?")) {
       cancelOrder(orderId);
@@ -59,7 +68,6 @@ const OrdersPage = () => {
         Đơn hàng của tôi
       </h1>
 
-      {/* ================= EMPTY STATE ================= */}
       {orders.length === 0 ? (
         <div className="text-center py-20">
           <div className="text-7xl mb-6">📦</div>
@@ -72,14 +80,12 @@ const OrdersPage = () => {
         </div>
       ) : (
         <div className="space-y-8">
-
-          {/* ================= ORDER CARD ================= */}
           {orders.map((order) => (
             <div
               key={order.id}
               className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden"
             >
-              {/* Header */}
+              {/* HEADER */}
               <div className="p-6 border-b bg-gray-50">
                 <div className="flex justify-between items-start">
                   <div>
@@ -88,6 +94,12 @@ const OrdersPage = () => {
                     </h3>
                     <p className="text-gray-600 text-sm mt-1">
                       Ngày đặt: {order.createdAt}
+                    </p>
+
+                    {/* NEW – hiển thị thanh toán */}
+                    <p className={`mt-1 text-sm ${getPaymentColor(order.paymentStatus)}`}>
+                      Thanh toán:{" "}
+                      {order.paymentStatus === "paid" ? "Đã thanh toán" : "Chưa thanh toán"}
                     </p>
                   </div>
 
@@ -101,7 +113,7 @@ const OrdersPage = () => {
                 </div>
               </div>
 
-              {/* Items */}
+              {/* BODY */}
               <div className="p-6 space-y-4">
                 {order.items.map((item, index) => (
                   <div
@@ -123,7 +135,6 @@ const OrdersPage = () => {
                   </div>
                 ))}
 
-                {/* Total */}
                 <div className="border-t pt-4 mt-4 flex justify-between items-center">
                   <span className="text-lg font-semibold">Tổng cộng:</span>
                   <span className="text-2xl font-bold text-blue-600">
@@ -131,12 +142,14 @@ const OrdersPage = () => {
                   </span>
                 </div>
 
-                {/* Actions */}
+                {/* ACTIONS */}
                 <div className="flex flex-wrap gap-3 mt-6">
-
-                  <button className="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+                  <Link
+                    to={`/orders/${order.id}`}
+                    className="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+                  >
                     Xem chi tiết
-                  </button>
+                  </Link>
 
                   {order.status === "pending" && (
                     <button
@@ -147,16 +160,20 @@ const OrdersPage = () => {
                     </button>
                   )}
 
-                  {order.status === "delivered" && (
-                    <button className="px-5 py-2 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition">
-                      Mua lại
-                    </button>
-                  )}
+                  {order.status === "delivered" &&
+                    order.items.map((item, idx) => (
+                      <Link
+                        key={idx}
+                        to={`/orders/${order.id}/review/${item.id}`}
+                        className="px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
+                      >
+                        Đánh giá {item.name}
+                      </Link>
+                    ))}
                 </div>
               </div>
             </div>
           ))}
-
         </div>
       )}
     </div>

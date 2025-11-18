@@ -1,397 +1,318 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../../components/ProductCard";
-import { banners, products, categories } from "../../data/mockData";
+import { banners, products, categories as origCategories } from "../../data/mockData";
+
+/**
+ * HomePage V3 — Premium Blue (Flash Sale full-slider, Category style B, Top tuần auto-scroll)
+ *
+ * Notes:
+ * - Categories images are overridden with curated Unsplash links (high-quality editorial).
+ * - Flash Sale: groups of 3 cards per slide, auto-advances, smooth transform-based slider (no scrollbar).
+ * - Top Tuần: horizontal auto-scroll list (small cards), loops.
+ * - Uses basic JS + Tailwind; no external carousel libs.
+ */
+
+const CATEGORY_IMAGES = {
+  "Áo thun": "https://images.unsplash.com/photo-1585386959984-a4155228f618?auto=format&fit=crop&w=1200&q=80",
+  "Quần jeans": "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?auto=format&fit=crop&w=1200&q=80",
+  "Áo sơ mi": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80",
+  "Váy": "https://images.unsplash.com/photo-1520975922215-1c00daaf64b4?auto=format&fit=crop&w=1200&q=80",
+  "Giày": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80",
+  "Phụ kiện": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80",
+};
 
 const HomePage = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  // countdown for Today Deals (24 hours from page load)
-  const [timeLeft, setTimeLeft] = useState(() => 24 * 60 * 60); // seconds
-
+  // Banner slide
+  const [slide, setSlide] = useState(0);
   useEffect(() => {
-    const interval = setInterval(
-      () => setCurrentSlide((prev) => (prev + 1) % banners.length),
-      5000
-    );
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      setTimeLeft((s) => (s > 0 ? s - 1 : 0));
-    }, 1000);
+    const t = setInterval(() => setSlide((s) => (s + 1) % banners.length), 5000);
     return () => clearInterval(t);
   }, []);
 
-  const formatTime = (seconds) => {
-    const h = Math.floor(seconds / 3600)
-      .toString()
-      .padStart(2, "0");
-    const m = Math.floor((seconds % 3600) / 60)
-      .toString()
-      .padStart(2, "0");
-    const s = Math.floor(seconds % 60)
-      .toString()
-      .padStart(2, "0");
-    return `${h} : ${m} : ${s}`;
-  };
+  // Flash sale slider (3 cards per slide)
+  const FLASH_PER_SLIDE = 3;
+  const flashProducts = products.slice(0, 12); // pick first 12 for flash (demo)
+  const flashSlides = [];
+  for (let i = 0; i < flashProducts.length; i += FLASH_PER_SLIDE) {
+    flashSlides.push(flashProducts.slice(i, i + FLASH_PER_SLIDE));
+  }
+  const [flashIndex, setFlashIndex] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setFlashIndex((i) => (i + 1) % flashSlides.length), 4500);
+    return () => clearInterval(t);
+  }, [flashSlides.length]);
 
-  // pick 3 deals from products (use real product images)
-  const dealProducts = products.slice(5, 8).length ? products.slice(5, 8) : products.slice(0, 3);
+  // Top tuần auto-scroll (small cards)
+  const topRef = useRef(null);
+  const [topPaused, setTopPaused] = useState(false);
+  useEffect(() => {
+    const el = topRef.current;
+    if (!el) return;
+    let rafId;
+    let speed = 0.6; // px per frame approx
+    const step = () => {
+      if (!topPaused) {
+        el.scrollLeft += speed;
+        // loop when near end
+        if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 1) {
+          el.scrollLeft = 0;
+        }
+      }
+      rafId = requestAnimationFrame(step);
+    };
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
+  }, [topPaused]);
+
+  // Category list with images
+  const categories = origCategories.map((c) => ({
+    ...c,
+    image: CATEGORY_IMAGES[c.name] || CATEGORY_IMAGES["Phụ kiện"],
+  }));
+
+  // helper format price (if number)
+  const fmt = (v) =>
+    typeof v === "number" ? v.toLocaleString("vi-VN") + " ₫" : v;
 
   return (
-    <div className="overflow-x-hidden bg-white">
+    <div className="overflow-x-hidden bg-white text-gray-900">
 
-     {/* ===================== HERO BANNER (PREMIUM VERSION) ===================== */}
-<section className="relative h-[480px] md:h-[600px] overflow-hidden rounded-b-[38px] shadow-lg">
-
-  {banners.map((banner, index) => (
-    <div
-      key={banner.id}
-      className={`absolute inset-0 transition-all duration-[1200ms] ease-out
-      ${index === currentSlide ? "opacity-100 scale-100" : "opacity-0 scale-105"}`}
-    >
-      {/* Background image */}
-      <div
-        className="h-full w-full bg-cover bg-center relative flex items-center"
-        style={{ backgroundImage: `url(${banner.image})` }}
-      >
-        {/* Layer 1: dark to light diagonal gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/75 via-blue-900/40 to-transparent" />
-
-        {/* Layer 2: subtle top and bottom vignette */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/20" />
-
-        {/* CONTENT */}
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-2xl text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.3)] animate-slideUp">
-            
-            {/* Title */}
-            <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
-              {banner.title}
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-lg md:text-2xl opacity-95 mb-8 font-light">
-              {banner.subtitle}
-            </p>
-
-            {/* CTA Button */}
-            <Link
-              to="/products"
-              className="inline-block px-10 py-3 bg-white text-blue-700 font-bold text-lg rounded-full shadow-xl hover:bg-blue-100 hover:-translate-y-1 transition-all"
-            >
-              {banner.buttonText}
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
-  ))}
-
-  {/* SLIDE DOTS */}
-  <div className="absolute bottom-7 left-1/2 -translate-x-1/2 flex space-x-3 z-20">
-    {banners.map((_, index) => (
-      <button
-        key={index}
-        onClick={() => setCurrentSlide(index)}
-        className={`w-3 h-3 rounded-full transition-all duration-300
-        ${
-          index === currentSlide
-            ? "bg-white scale-150 shadow-xl"
-            : "bg-white/40 hover:bg-white/60"
-        }`}
-      />
-    ))}
-  </div>
-
-  {/* Extra subtle animated overlay */}
-  <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_60%)] animate-pulse-slow" />
-</section>
-
-     {/* ===================== CATEGORIES (PREMIUM VERSION) ===================== */}
-<section className="py-20 mt-10">
-  <div className="container mx-auto px-4">
-
-    <h2 className="text-4xl font-extrabold text-center text-gray-800 mb-14 tracking-tight">
-      Danh mục nổi bật
-    </h2>
-
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-6">
-      {categories.map((category) => (
-        <Link
-          key={category.id}
-          to={`/products?category=${category.name}`}
-          className="group relative block rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 bg-gray-100"
-        >
-          {/* Ảnh nền */}
+      {/* HERO (kept simple but premium blue overlay) */}
+      <section className="relative h-[480px] md:h-[640px] rounded-b-[28px] overflow-hidden shadow-2xl">
+        {banners.map((b, i) => (
           <div
-            className="w-full h-40 sm:h-48 bg-cover bg-center group-hover:scale-110 transition-transform duration-500"
-            style={{ backgroundImage: `url(${category.image})` }}
-          />
-
-          {/* Overlay gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-all"></div>
-
-          {/* Nội dung */}
-          <div className="absolute bottom-0 p-4 text-white">
-            <h3 className="text-lg sm:text-xl font-semibold drop-shadow">
-              {category.name}
-            </h3>
-            <p className="text-sm text-white/80 mt-1">
-              {category.count} sản phẩm
-            </p>
+            key={b.id}
+            className={`absolute inset-0 transition-all duration-1000 ease-out ${
+              i === slide ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
+            }`}
+            style={{
+              backgroundImage: `url(${b.image})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/75 via-blue-700/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/25" />
+            <div className="relative z-10 container mx-auto px-6 h-full flex items-center">
+              <div className="max-w-2xl text-white animate-slideUp">
+                <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 drop-shadow">
+                  {b.title}
+                </h1>
+                <p className="text-lg md:text-xl opacity-95 mb-6">{b.subtitle}</p>
+                <Link to="/products" className="inline-block px-8 py-3 bg-white text-blue-700 rounded-full font-semibold shadow hover:scale-[1.02] transition">
+                  {b.buttonText || "Khám phá"}
+                </Link>
+              </div>
+            </div>
           </div>
-        </Link>
-      ))}
-    </div>
-  </div>
-</section>
-
-      {/* ===================== FLASH SALE ===================== */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-blue-400 text-white mt-6 rounded-3xl">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="text-3xl font-extrabold uppercase tracking-wide">
-              ⚡ FLASH SALE
-            </h2>
-            <span className="bg-white/20 px-4 py-2 rounded-xl text-sm">
-              Đang diễn ra • Deal cực tốt
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-            {products.slice(0, 5).map((product) => (
-              <ProductCard key={product.id} product={product} flash />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===================== TODAY DEALS (G) — Banner + 3 Cards ===================== */}
-      <section className="py-12 mt-10">
-        <div className="container mx-auto px-4">
-
-          {/* MAIN BANNER */}
-          <div className="relative rounded-3xl overflow-hidden shadow-xl">
-            <div
-              className="w-full h-56 md:h-80 bg-cover bg-center"
-              style={{
-                backgroundImage:
-                  "linear-gradient(90deg, rgba(4,8,27,0.72) 0%, rgba(37,99,235,0.35) 60%), url('/images/deals/banner-deal.jpg')",
-              }}
+        ))}
+        {/* dots */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+          {banners.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setSlide(idx)}
+              className={`w-3 h-3 rounded-full transition ${
+                idx === slide ? "bg-white scale-150 shadow-2xl" : "bg-white/40 hover:bg-white/60"
+              }`}
             />
+          ))}
+        </div>
+      </section>
 
-            <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-between p-6 md:p-12">
-              <div className="max-w-2xl text-white">
-                <div className="text-sm uppercase bg-white/10 inline-block px-3 py-1 rounded-full mb-3 font-semibold">
-                  Ưu đãi hôm nay
+      {/* CATEGORIES — style B (medium image cards) */}
+      <section className="py-16">
+        <div className="container mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-center mb-10">Danh mục nổi bật</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            {categories.map((c) => (
+              <Link
+                key={c.id}
+                to={`/products?category=${encodeURIComponent(c.name)}`}
+                className="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+              >
+                <div
+                  className="h-40 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                  style={{ backgroundImage: `url(${c.image})` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-80 group-hover:opacity-100 transition" />
+                <div className="absolute bottom-4 left-4 text-white">
+                  <h3 className="text-lg font-semibold">{c.name}</h3>
+                  <p className="text-sm opacity-80">{c.count} sản phẩm</p>
                 </div>
+                {/* subtle glow border on hover */}
+                <div className="absolute inset-0 rounded-2xl border border-transparent group-hover:border-blue-300/40 group-hover:shadow-[0_10px_40px_rgba(37,99,235,0.12)] transition" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
-                <h3 className="text-2xl md:text-4xl font-extrabold leading-tight">
-                  Giảm đến <span className="text-yellow-300">30%</span> cho sản phẩm chọn lọc
-                </h3>
+      {/* FLASH SALE — slider full-width style B (3 per slide) */}
+      <section className="py-12">
+        <div className="container mx-auto px-6">
+          <div className="relative bg-gradient-to-r from-blue-700 to-blue-500 text-white rounded-3xl p-8 shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl md:text-3xl font-extrabold">⚡ FLASH SALE</h3>
+              <div className="text-sm bg-white/20 px-3 py-1 rounded">{/* status */}Đang diễn ra</div>
+            </div>
 
-                <p className="mt-3 text-sm md:text-base text-white/90 max-w-xl">
-                  Ưu đãi chỉ trong hôm nay. Nhanh tay chọn sản phẩm yêu thích — số lượng có hạn.
-                </p>
-
-                <div className="mt-6 flex items-center gap-4">
-                  <Link
-                    to="/products"
-                    className="px-6 py-3 bg-white text-blue-700 font-semibold rounded-full shadow hover:bg-blue-50 transition"
-                  >
-                    Xem ngay
-                  </Link>
-
-                  <div className="text-white text-sm flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" />
-                      <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M12 3v1" />
-                    </svg>
-                    <span>Kết thúc sau</span>
-                    <span className="ml-2 font-mono bg-black/20 px-3 py-1 rounded">{formatTime(timeLeft)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right small highlight (optional) */}
-              <div className="mt-6 md:mt-0 md:ml-8 w-full md:w-72">
-                <div className="bg-white/5 rounded-2xl p-3">
-                  <div className="text-xs text-white/80">Hot pick</div>
-                  <div className="mt-3 flex items-center gap-3">
-                    <img
-                      src={dealProducts[0]?.image || "/placeholder.png"}
-                      alt={dealProducts[0]?.name}
-                      className="w-14 h-14 object-cover rounded-lg shadow"
-                    />
-                    <div className="text-white">
-                      <div className="font-medium">{dealProducts[0]?.name}</div>
-                      <div className="text-sm text-white/80">{dealProducts[0]?.price?.toLocaleString()}₫</div>
+            {/* Slider container */}
+            <div className="w-full overflow-hidden">
+              <div
+                className="flex transition-transform duration-700 ease-out"
+                style={{
+                  width: `${flashSlides.length * 100}%`,
+                  transform: `translateX(-${flashIndex * (100 / flashSlides.length)}%)`,
+                }}
+              >
+                {flashSlides.map((slideChunk, si) => (
+                  <div key={si} className="w-[100%] flex gap-6 px-2" style={{ paddingLeft: "4px", paddingRight: "4px" }}>
+                    {/* center inner row: show 3 items equally spaced */}
+                    <div className="flex w-full justify-center gap-6">
+                      {slideChunk.map((p) => (
+                        <div key={p.id} className="w-[320px] min-w-[320px] max-w-[320px]">
+                          {/* product card shell to keep flash style */}
+                          <div className="bg-white text-black rounded-2xl shadow-lg overflow-hidden hover:scale-[1.02] transition">
+                            <div className="relative">
+                              <img src={p.image} alt={p.name} className="w-full h-52 object-cover" />
+                              {/* badges */}
+                              <div className="absolute top-3 left-3 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">FLASH</div>
+                              {p.originalPrice > p.price && (
+                                <div className="absolute top-3 right-3 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                  -{Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)}%
+                                </div>
+                              )}
+                            </div>
+                            <div className="p-4">
+                              <h4 className="font-semibold text-gray-900 line-clamp-2">{p.name}</h4>
+                              <p className="text-sm text-gray-500 mt-1">{p.category}</p>
+                              <div className="mt-4 flex items-center justify-between">
+                                <div>
+                                  <div className="text-lg font-bold text-blue-700">{fmt(p.price)}</div>
+                                  {p.originalPrice > p.price && <div className="text-sm text-gray-400 line-through">{fmt(p.originalPrice)}</div>}
+                                </div>
+                                <Link to={`/products/${p.id}`} className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                                  Xem
+                                </Link>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {/* fill blanks if chunk < FLASH_PER_SLIDE */}
+                      {slideChunk.length < FLASH_PER_SLIDE &&
+                        Array.from({ length: FLASH_PER_SLIDE - slideChunk.length }).map((_, k) => (
+                          <div key={`empty-${k}`} className="w-[320px] min-w-[320px]" />
+                        ))}
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
             </div>
+
+            {/* controls (optional) */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3">
+              {flashSlides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setFlashIndex(i)}
+                  className={`w-3 h-3 rounded-full transition ${i === flashIndex ? "bg-white" : "bg-white/40"}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TOP TUẦN — small horizontal auto-scroll */}
+      <section className="py-8">
+        <div className="container mx-auto px-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-extrabold">Top tuần</h3>
+            <Link to="/products" className="text-sm text-blue-600 font-medium">Xem tất cả</Link>
           </div>
 
-          {/* DEAL CARDS */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            {dealProducts.map((p) => (
-              <div key={p.id} className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
+          <div
+            ref={topRef}
+            onMouseEnter={() => setTopPaused(true)}
+            onMouseLeave={() => setTopPaused(false)}
+            className="flex gap-4 overflow-x-auto scrollbar-hide py-1"
+          >
+            {products.slice(0, 12).map((p) => (
+              <div key={p.id} className="min-w-[220px] bg-white rounded-2xl shadow hover:shadow-lg transition p-3">
                 <div className="relative">
-                  <img src={p.image || "/placeholder.png"} alt={p.name} className="w-full h-44 object-cover" />
-                  <div className="absolute top-3 left-3 bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                    DEAL
-                  </div>
-                  {p.originalPrice > p.price && (
-                    <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                      -{Math.round(((p.originalPrice - p.price)/p.originalPrice)*100)}%
-                    </div>
-                  )}
+                  <img src={p.image} alt={p.name} className="w-full h-36 object-cover rounded-lg" />
+                  <div className="absolute top-3 right-3 bg-red-500 text-white text-xs px-2 py-1 rounded-full">HOT</div>
                 </div>
-
-                <div className="p-4">
-                  <h4 className="font-semibold text-gray-800 line-clamp-2">{p.name}</h4>
-                  <p className="text-sm text-gray-500 mt-1">{p.category}</p>
-
-                  <div className="mt-4 flex items-center justify-between">
-                    <div>
-                      <div className="text-lg font-bold text-blue-600">{p.price.toLocaleString()}₫</div>
-                      {p.originalPrice > p.price && (
-                        <div className="text-sm text-gray-400 line-through">{p.originalPrice.toLocaleString()}₫</div>
-                      )}
-                    </div>
-
-                    <Link to={`/products/${p.id}`} className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-                      Xem ngay
-                    </Link>
-                  </div>
+                <div className="mt-3">
+                  <div className="font-medium text-gray-900 line-clamp-2">{p.name}</div>
+                  <div className="text-sm text-gray-500 mt-1">{fmt(p.price)}</div>
                 </div>
               </div>
             ))}
           </div>
-
         </div>
       </section>
 
-      {/* ===================== FEATURED PRODUCTS (PREMIUM VERSION) ===================== */}
-<section className="py-20 bg-white relative">
-  <div className="container mx-auto px-4">
-
-    {/* Title */}
-    <div className="text-center mb-14">
-      <h2 className="text-4xl font-extrabold mb-4 text-gray-900 tracking-tight">
-        Sản phẩm nổi bật
-      </h2>
-      <p className="text-gray-600 text-lg">
-        Những sản phẩm được yêu thích & bán chạy nhất tuần này
-      </p>
-    </div>
-
-    {/* Product Grid */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-      {products.slice(0, 8).map((product) => (
-        <div
-          key={product.id}
-          className="animate-fadeInUp"
-          style={{ animationDelay: `${product.id * 0.06}s` }}
-        >
-          <ProductCard product={product} />
+      {/* EDITORIAL — High-end highlight */}
+      <section className="py-20">
+        <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+          <img src="/images/editorial/fashion1.jpg" alt="editorial" className="rounded-3xl shadow-2xl object-cover w-full h-[420px]" />
+          <div>
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4">High-end Fashion</h2>
+            <p className="text-gray-600 mb-6 leading-relaxed">Bộ sưu tập thời trang cao cấp dành riêng cho bạn. Thiết kế sang trọng, chất liệu thượng hạng.</p>
+            <Link to="/products" className="inline-block px-8 py-3 bg-blue-600 text-white rounded-full shadow hover:bg-blue-700 transition">Khám phá ngay</Link>
+          </div>
         </div>
-      ))}
-    </div>
+      </section>
 
-    {/* CTA Button */}
-    <div className="text-center mt-14">
-      <Link
-        to="/products"
-        className="px-10 py-3 bg-blue-600 text-white text-lg rounded-full shadow-lg hover:bg-blue-700 hover:-translate-y-1 transition-all duration-300"
-      >
-        Xem tất cả sản phẩm
-      </Link>
-    </div>
-
-  </div>
-
-  {/* Fade top divider */}
-  <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-gray-50 to-transparent pointer-events-none" />
-</section>
-
-<style>
-{`
-  @keyframes fadeInUp {
-    0% {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  .animate-fadeInUp {
-    animation: fadeInUp .6s ease-out forwards;
-  }
-
-  @keyframes slideUp {
-    0% {
-      opacity: 0;
-      transform: translateY(12px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  .animate-slideUp {
-    animation: slideUp 0.9s ease-out both;
-  }
-
-  @keyframes pulse-slow {
-    0%, 100% { opacity: 0.04; }
-    50% { opacity: 0.08; }
-  }
-  .animate-pulse-slow {
-    animation: pulse-slow 5s ease-in-out infinite;
-  }
-`}
-</style>
-
-      {/* ===================== FEATURES ===================== */}
+      {/* FEATURED PRODUCTS — grid */}
       <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-
-          <div className="flex flex-col items-center">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-3xl text-blue-700">
-              🤖
-            </div>
-            <h3 className="text-xl font-semibold mt-4 text-gray-800">Tìm kiếm bằng AI</h3>
-            <p className="text-gray-600 mt-2">Upload hình ảnh để tìm sản phẩm tương tự</p>
+        <div className="container mx-auto px-6">
+          <h3 className="text-3xl font-extrabold text-center mb-10">Sản phẩm nổi bật</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {products.slice(0, 8).map((p) => (
+              <div key={p.id} className="reveal">
+                <ProductCard product={p} />
+              </div>
+            ))}
           </div>
-
-          <div className="flex flex-col items-center">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-3xl text-blue-700">
-              🚚
-            </div>
-            <h3 className="text-xl font-semibold mt-4 text-gray-800">Giao hàng nhanh</h3>
-            <p className="text-gray-600 mt-2">Giao hàng toàn quốc trong 1-3 ngày</p>
-          </div>
-
-          <div className="flex flex-col items-center">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-3xl text-blue-700">
-              ⭐
-            </div>
-            <h3 className="text-xl font-semibold mt-4 text-gray-800">Chất lượng đảm bảo</h3>
-            <p className="text-gray-600 mt-2">Sản phẩm chính hãng, đổi trả 30 ngày</p>
-          </div>
-
         </div>
       </section>
 
+      {/* Footer: keep using your Footer component (we updated earlier). */}
+      {/* Global animations & helper CSS */}
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes slideUp { from { opacity:0; transform: translateY(12px);} to {opacity:1; transform:translateY(0);} }
+        .animate-slideUp { animation: slideUp .8s ease-out both; }
+        /* reveal animation */
+        .reveal { opacity: 0; transform: translateY(20px); transition: all .9s ease; }
+        .reveal.active { opacity:1; transform: translateY(0); }
+        /* utility: clamp lines if needed (requires -webkit-line-clamp support) */
+        .line-clamp-2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+      `}</style>
+
+      <ScriptRevealObserver />
     </div>
   );
+};
+
+// Small component to observe .reveal elements and add .active
+const ScriptRevealObserver = () => {
+  useEffect(() => {
+    const els = document.querySelectorAll(".reveal");
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add("active")),
+      { threshold: 0.12 }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+  return null;
 };
 
 export default HomePage;

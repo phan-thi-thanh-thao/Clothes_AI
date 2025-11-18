@@ -12,7 +12,7 @@ const ProductCard = ({ product, flash = false }) => {
     toast.success("Đã thêm vào giỏ hàng!");
   };
 
-  // Format VND
+  // Format tiền VND
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -20,21 +20,22 @@ const ProductCard = ({ product, flash = false }) => {
     }).format(price);
   };
 
-  // Tính % Giảm giá
+  // Tính % giảm giá
   const discountPercent =
     product.originalPrice > product.price
       ? Math.round(
-          ((product.originalPrice - product.price) / product.originalPrice) *
+          ((product.originalPrice - product.price) /
+            product.originalPrice) *
             100
         )
       : 0;
 
-  // Ảnh fallback
+  // Fallback ảnh
   const productImage =
     product.image || product.images?.[0] || "/placeholder.png";
 
   return (
-    <div className="group bg-white rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden relative border border-gray-100 hover:scale-[1.02]">
+    <div className="group bg-white rounded-3xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden relative border border-gray-100 hover:border-blue-300/40 hover:scale-[1.02]">
 
       {/* BADGE FLASH SALE */}
       {flash && (
@@ -50,33 +51,33 @@ const ProductCard = ({ product, flash = false }) => {
         </div>
       )}
 
-      {/* CARD CONTENT */}
+      {/* CARD LINK */}
       <Link to={`/products/${product.id}`}>
         {/* IMAGE */}
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden rounded-t-3xl">
           <img
             src={productImage}
             alt={product.name}
             className="w-full h-60 object-cover transition-transform duration-700 group-hover:scale-110"
           />
 
-          {/* Hover overlay nhẹ */}
+          {/* Overlay hover */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500"></div>
         </div>
 
-        {/* INFO AREA */}
-        <div className="p-4 pb-20"> {/* thêm pb-20 để chừa chỗ cho nút */}
-          {/* TITLE */}
-          <h3 className="font-semibold text-gray-800 text-lg line-clamp-2 min-h-[52px] group-hover:text-blue-600 transition">
+        {/* INFO */}
+        <div className="p-4 pb-20">
+          {/* Tên sản phẩm */}
+          <h3 className="font-semibold text-gray-900 text-lg line-clamp-2 min-h-[52px] group-hover:text-blue-600 transition">
             {product.name}
           </h3>
 
-          {/* CATEGORY */}
+          {/* Danh mục */}
           <p className="text-gray-500 text-sm mt-1 mb-2">
             {product.category}
           </p>
 
-          {/* RATING */}
+          {/* Rating */}
           <div className="flex items-center text-yellow-400 text-sm mb-2">
             <AiFillStar className="mr-1" />
             <span>{product.rating || 4.8}</span>
@@ -85,7 +86,7 @@ const ProductCard = ({ product, flash = false }) => {
             </span>
           </div>
 
-          {/* PRICE */}
+          {/* Giá */}
           <div className="flex items-end space-x-2 mt-1">
             <span className="text-xl font-bold text-blue-600">
               {formatPrice(product.price)}
@@ -100,7 +101,7 @@ const ProductCard = ({ product, flash = false }) => {
         </div>
       </Link>
 
-      {/* ADD TO CART (CỐ ĐỊNH - KHÔNG SLIDE) */}
+      {/* ADD TO CART */}
       <button
         onClick={handleAddToCart}
         className="
